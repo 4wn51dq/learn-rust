@@ -40,6 +40,7 @@ fn build_bracket_map(program: &str) -> Vec<usize> {
     let mut map = vec![0usize; len];
     let mut stack: Vec<usize> = Vec::new();
 
+    // O(n) to O(1)
     for i in 0..len {
         match bytes[i] {
             b'[' => { // a byte literal 

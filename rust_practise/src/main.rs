@@ -10,10 +10,15 @@ fn main() {
         amount: 123,
         sender: [66; 20],
         receiver: [77; 20],
+        status: TxStatus::Confirmed(123),
     };
-    let txs: Vec<Tx> = vec![tx];
-    let block = Block::new(header, txs);
-    println!("the block {:?} contains {} transactions", block, block.tx_count());
+    let txs: Vec<Tx> = vec![];
+    let block = match Block::new(header, txs) {
+        Ok(block) => block,
+        Err(e) => panic!("error: {}", e),
+    };
+    block.txs[0].describe();
+    
 }
 
 #[derive(Debug)]
@@ -36,21 +41,36 @@ struct Tx {
     amount: u64,
     sender: [u8; 20],
     receiver: [u8; 20],
+    status: TxStatus,
 }
 
+impl Tx {
+    fn describe(&self) {
+        match &self.status {
+            TxStatus::Pending => println!("pending"),
+            TxStatus::Confirmed (block_num) => println!("confirmed in block {}", block_num),
+            TxStatus::Failed (reason) => println!("tx failed: {}", reason),
+        }
+    }
+}
+
+#[derive(Debug)]
 enum TxStatus {
     Pending,
     Confirmed(u64), // block number
-    Failed(str)
+    Failed(String),
 }
 
 impl Block {
-    fn new(header: Header, txs: Vec<Tx>) -> Self {
+    fn new(header: Header, txs: Vec<Tx>) -> Result<Self, String> {
+        if txs.is_empty() {
+            return Err(String::from("no txs"))
+        };
         let block = Block{
             header: header,
             txs: txs,
         };
-        block
+        Ok(block)
     }
     fn tx_count(&self) -> usize {
         self.txs.len()

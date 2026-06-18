@@ -1,25 +1,22 @@
 fn main() {
-
-    let x = 5;
-    println!("the value of x is: {}", x);
-
-    {
-        let x= 69;
-        println!("in thhe inner scope the value of x is: {}", x);
-    }
-
-    let x=x+2;
-    println!("the value of x now is: {}", x);
-
-    {
-        let x= "mhmdffhm";
-        println!("x as a string within a scope is: {}", x);
-    }
-
-    let x= "ffffuhhhhyes";
-        println!("x as a string is: {}", x);
-
-    const MAX_X: i32 = 100000;
+    let s = String::from("hello world");
+    // let word = first_word(&s);
+    let word = first_word(&s);
+    s.clear();
+    println!("{}", word);
 
 }
 
+fn first_word(s: &str) -> &str {
+    let b = s.bytes();
+    let mut idx: Option<usize> = None;
+    for (i, byte) in b.enumerate() {
+        if  byte == b' '{
+            idx = Some(i);
+        }
+    }
+    match idx {
+        Some(idx) => &s[0..idx],
+        None => &s,
+    }
+}

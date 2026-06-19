@@ -1,24 +1,39 @@
 fn main() {
-    let header = Header {
-        previous_hash: [0; 32],
-        merkle_root: [1; 32],
-        version: 2,
-        nonce: 12345678987654321,
-        timestamp: 193746894,
-    };
-    let tx = Tx {
-        amount: 123,
-        sender: [66; 20],
-        receiver: [77; 20],
-        status: TxStatus::Confirmed(123),
-    };
-    let txs: Vec<Tx> = vec![];
-    let block = match Block::new(header, txs) {
-        Ok(block) => block,
-        Err(e) => panic!("error: {}", e),
-    };
-    block.txs[0].describe();
-    
+    let hashers: Vec<Box<dyn Hasher>> = vec![
+        Box::new(Sha256{}),
+        Box::new(Keccak256{}),
+    ];
+
+    for hasher in &hashers {
+        println!("{:?}", hasher.hash(&[1,2,3]));
+    }
+}
+
+trait Hasher {
+    fn hash(&self, data: &[u8]) -> [u8; 32];
+}
+
+struct Sha256 {
+
+}
+
+struct Keccak256 {
+
+}
+
+impl Hasher for Sha256 {
+    fn hash(&self, data: &[u8]) -> [u8; 32] {
+        [55; 32]
+    }
+}
+impl Hasher for Keccak256 {
+    fn hash(&self, data: &[u8]) -> [u8; 32] {
+        [77; 32]
+    }
+}
+
+fn compute_hash<T: Hasher>(hasher: T, data: &[u8]) -> [u8; 32] {
+    hasher.hash(data)
 }
 
 #[derive(Debug)]

@@ -1,4 +1,4 @@
-
+use std::collections::HashMap;
 
 fn main() {
      /* let genesis_header = Header {
@@ -84,6 +84,13 @@ fn main() {
     ).unwrap());
 
     println!("total blockchain volume = {}", Blockchain::total_volume(&blockchain));
+
+    let index = blockchain.block_index();
+    let found = index.get(&[1; 32]);
+    match found {
+        Some(block) => println!("found block with {} txs", block.tx_count()),
+        None => println!("block not found"),
+    };
 }
 
 struct Blockchain {
@@ -103,6 +110,26 @@ impl Blockchain {
 
     fn total_volume(&self) -> u64 {
         self.blocks.iter().flat_map(|block| block.txs.iter()).map(|tx| tx.amount).sum()
+    }
+
+    fn latest_block_vec(&self) -> Option<&Block> {
+        if self.blocks.len()>0 {
+            Some(&self.blocks[self.blocks.len()-1])
+        } else {
+            None
+        }
+    }
+
+    fn latest_block_iter(&self) -> Option<&Block> {
+        self.blocks.last()
+    }
+
+    fn block_index(&self) -> HashMap<[u8; 32], &Block> {
+        let mut hashmap = HashMap::new();
+        for block in &self.blocks {
+            hashmap.insert(block.header.merkle_root, block);
+        }
+        hashmap
     }
 }
 

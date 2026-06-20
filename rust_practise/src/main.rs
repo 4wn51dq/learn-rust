@@ -1,7 +1,7 @@
 
 
 fn main() {
-    let genesis_header = Header {
+     /* let genesis_header = Header {
         previous_hash: None,
         merkle_root: [0; 32],
         nonce: 0000000000000,
@@ -42,6 +42,48 @@ fn main() {
     for tx in results {
         tx.describe();
     }
+    */
+
+    let mut blockchain = Blockchain { blocks: vec![] };
+    
+    let block = Block::new(
+        Header {
+            previous_hash: None,
+            merkle_root: [0; 32],
+            nonce: 0,
+            timestamp: 0,
+        },
+        vec![Tx {
+            amount: 50,
+            sender: [1; 20],
+            receiver: [2; 20],
+            status: TxStatus::Pending,
+        }],
+    ).unwrap();
+    
+    blockchain.add_new(block);
+    
+    let results = blockchain.find_txs(50);
+    println!("{:?}", results);
+
+    let prev_hash = blockchain.blocks[0].header.merkle_root;
+    
+    blockchain.add_new(Block::new(
+        Header {
+            previous_hash: Some(prev_hash),
+            merkle_root: [1; 32],
+            nonce: 1,
+            timestamp: 1,
+        },
+        vec![Tx{
+            amount: 50,
+            sender: [1; 20],
+            receiver: [3; 20],
+            status: TxStatus::Confirmed(2),
+        }],
+    ).unwrap());
+
+    println!("total blockchain volume = {}", Blockchain::total_volume(&blockchain));
 }
 
 struct Blockchain {
@@ -56,15 +98,11 @@ impl Blockchain {
     }
 
     fn find_txs(&self, amount: u64) -> Vec<&Tx> {
-        let mut tx_list: Vec<&Tx> = vec![];
-        for block in &self.blocks {
-            for tx in &block.txs {
-                if tx.amount == amount {
-                    tx_list.push(tx);
-                }
-            }
-        }
-        tx_list
+        self.blocks.iter().flat_map(|block| block.txs.iter()).filter(|tx| tx.amount == amount).collect()
+    }
+
+    fn total_volume(&self) -> u64 {
+        self.blocks.iter().flat_map(|block| block.txs.iter()).map(|tx| tx.amount).sum()
     }
 }
 

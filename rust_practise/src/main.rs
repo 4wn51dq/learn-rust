@@ -1,11 +1,70 @@
-fn main() {
-    let hashers: Vec<Box<dyn Hasher>> = vec![
-        Box::new(Sha256{}),
-        Box::new(Keccak256{}),
-    ];
 
-    for hasher in &hashers {
-        println!("{:?}", hasher.hash(&[1,2,3]));
+
+fn main() {
+    let genesis_header = Header {
+        previous_hash: None,
+        merkle_root: [0; 32],
+        nonce: 0000000000000,
+        timestamp: 000000000000,
+    };
+    let tx1 = Tx{
+        amount: 1,
+        sender: [6; 20],
+        receiver: [7; 20],
+        status: TxStatus::Confirmed(1),
+    };
+    let tx2 = Tx{
+        amount: 1,
+        sender: [6; 20],
+        receiver: [9; 20],
+        status: TxStatus::Confirmed(2),
+    };
+    let header2 = Header {
+        previous_hash: Some(genesis_header.merkle_root),
+        merkle_root: [1; 32],
+        nonce: 111111111111,
+        timestamp: 000000023444,
+    };
+    let genesis = Block {
+        header: genesis_header,
+        txs: vec![tx1],
+    };
+    let block2 = Block {
+        header: header2,
+        txs: vec![tx2]
+    };
+    let mut blockchain = Blockchain {
+        blocks: vec![]
+    };
+    blockchain.add_new(genesis);
+    blockchain.add_new(block2);
+    let results = blockchain.find_txs(1);
+    for tx in results {
+        tx.describe();
+    }
+}
+
+struct Blockchain {
+    blocks: Vec<Block>
+}
+
+impl Blockchain {
+    fn add_new(&mut self, block: Block) {
+        
+        self.blocks.push(block);
+        
+    }
+
+    fn find_txs(&self, amount: u64) -> Vec<&Tx> {
+        let mut tx_list: Vec<&Tx> = vec![];
+        for block in &self.blocks {
+            for tx in &block.txs {
+                if tx.amount == amount {
+                    tx_list.push(tx);
+                }
+            }
+        }
+        tx_list
     }
 }
 
@@ -44,9 +103,8 @@ struct Block {
 
 #[derive(Debug)]
 struct Header {
-    previous_hash: [u8; 32],
+    previous_hash: Option<[u8; 32]>,
     merkle_root: [u8; 32],
-    version: u32,
     nonce: u64,
     timestamp: u64, 
 }

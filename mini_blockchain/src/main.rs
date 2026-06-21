@@ -1,7 +1,6 @@
-use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::thread;
-use serde::{Serialize, Deserialize};
+use tokio::time::{sleep, Duration};
 
 mod block;
 mod transaction;
@@ -11,10 +10,11 @@ mod hasher;
 use block::{Block, Header};
 use transaction::{Tx, TxStatus};
 use chain::Blockchain;
-use hasher::{Hasher, Sha256, Keccak256};
+use hasher::{Sha256, /*Keccak256*/ };
 
-fn main() {
-    let mut blockchain = Blockchain { blocks: vec![] };
+#[tokio::main]
+async fn main() {
+    let blockchain = Blockchain { blocks: vec![] };
     
     let block = Block::new(
         Header {
@@ -56,6 +56,51 @@ fn main() {
     println!("{}", json);
     
     println!("hexcode: {}", Block::merkle_root_hex(&bc_ref.blocks[0]));
+
+    let start = std::time::Instant::now();
+
+    /* let (b1, b2, b3) = tokio::join!(
+        fetch_block_from_peer(1),
+        fetch_block_from_peer(2),
+        fetch_block_from_peer(3),
+    ); 
+    
+    let b1 =fetch_block_from_peer(1).await;
+    let b2 = fetch_block_from_peer(2).await;
+    let b3 = fetch_block_from_peer(3).await; */
+
+    fetch_fastest_block().await;
+
+    println!("took {:?}", start.elapsed());
     
 }
 
+async fn fetch_block_from_peer(peer_id: u64) -> Block {
+    println!("fetching block from peer: {}", peer_id);
+    sleep(Duration::from_millis(100)).await;
+
+    Block::new(
+        Header{
+            previous_hash: None,
+            merkle_root: [peer_id as u8; 32],
+            nonce: 0,
+            timestamp: 0,
+        },
+        vec![
+            Tx{
+                amount: peer_id * 10,
+                sender: [1; 20],
+                receiver: [2; 20],
+                status: TxStatus::Pending,
+            }
+        ]
+    ).unwrap()
+}
+
+async fn fetch_fastest_block() -> Block {
+    tokio::select! {
+        b = fetch_block_from_peer(1) => { b },
+        b = fetch_block_from_peer(2) => { b },
+        b = fetch_block_from_peer(3) => { b },
+    }
+}

@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::thread;
+use serde::{Serialize, Deserialize};
 
 fn main() {
      /* let genesis_header = Header {
@@ -112,8 +113,15 @@ fn main() {
 
     let chain = shared_chain.lock().unwrap();
     println!("{}", chain.blocks.len());
+
+    let bc_ref: &Blockchain = &*chain;
+    let json = serde_json::to_string_pretty(bc_ref).unwrap();
+    println!("{}", json);
+
+    println!("hexcode: {}", Block::merkle_root_hex(&bc_ref.blocks[0]));
 }
 
+#[derive(Debug, Serialize, Deserialize)]
 struct Blockchain {
     blocks: Vec<Block>
 }
@@ -181,13 +189,13 @@ fn compute_hash<T: Hasher>(hasher: T, data: &[u8]) -> [u8; 32] {
     hasher.hash(data)
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 struct Block {
     header: Header,
     txs: Vec<Tx>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 struct Header {
     previous_hash: Option<[u8; 32]>,
     merkle_root: [u8; 32],
@@ -195,7 +203,7 @@ struct Header {
     timestamp: u64, 
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 struct Tx {
     amount: u64,
     sender: [u8; 20],
@@ -213,7 +221,7 @@ impl Tx {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 enum TxStatus {
     Pending,
     Confirmed(u64), // block number
@@ -233,5 +241,9 @@ impl Block {
     }
     fn tx_count(&self) -> usize {
         self.txs.len()
+    }
+
+    fn merkle_root_hex(&self) -> String {
+        format!("0x{}", hex::encode(self.header.merkle_root))
     }
 }

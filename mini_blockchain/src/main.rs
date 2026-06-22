@@ -6,6 +6,7 @@ mod block;
 mod transaction;
 mod chain;
 mod hasher;
+mod storage;
 
 use block::{Block, Header};
 use transaction::{Tx, TxStatus};
@@ -73,6 +74,8 @@ async fn main() {
 
     println!("took {:?}", start.elapsed());
     
+    let mut chain = load_chain("chain.json").unwrap_or_else(|_| Blockchain { blocks: vec![]});
+    save_chain(&chain, "chain.json").unwrap();
 }
 
 async fn fetch_block_from_peer(peer_id: u64) -> Block {
@@ -104,3 +107,5 @@ async fn fetch_fastest_block() -> Block {
         b = fetch_block_from_peer(3) => { b },
     }
 }
+
+fn

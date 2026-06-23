@@ -1,6 +1,7 @@
 use std::sync::{Arc, Mutex};
 use std::thread;
 use tokio::time::{sleep, Duration};
+use std::env::Args;
 
 mod block;
 mod transaction;
@@ -12,12 +13,15 @@ use block::{Block, Header};
 use transaction::{Tx, TxStatus};
 use chain::Blockchain;
 use hasher::{Sha256, /*Keccak256*/ };
+use storage::{load_chain, save_chain};
+
+use crate::hasher::Hasher;
 
 #[tokio::main]
 async fn main() {
     let blockchain = Blockchain { blocks: vec![] };
     
-    let block = Block::new(
+    let mut block = Block::new(
         Header {
             previous_hash: None,
             merkle_root: [0; 32],
@@ -26,12 +30,11 @@ async fn main() {
         },
         vec![Tx {
             amount: 50,
-            sender: [1; 20],
-            receiver: [2; 20],
+            sender: [6; 20],
+            receiver: [7; 20],
             status: TxStatus::Pending,
         }],
-    ).unwrap();
-    
+    ).unwrap(); /*
     let shared_chain = Arc::new(Mutex::new(blockchain)); //putting blockchain on the heap with Arc<Mutex>>
     
     // we want to see how we can make two threads share the same blockchain.
@@ -60,7 +63,7 @@ async fn main() {
 
     let start = std::time::Instant::now();
 
-    /* let (b1, b2, b3) = tokio::join!(
+     let (b1, b2, b3) = tokio::join!(
         fetch_block_from_peer(1),
         fetch_block_from_peer(2),
         fetch_block_from_peer(3),
@@ -68,16 +71,37 @@ async fn main() {
     
     let b1 =fetch_block_from_peer(1).await;
     let b2 = fetch_block_from_peer(2).await;
-    let b3 = fetch_block_from_peer(3).await; */
+    let b3 = fetch_block_from_peer(3).await; 
 
     fetch_fastest_block().await;
 
-    println!("took {:?}", start.elapsed());
+    println!("took {:?}", start.elapsed()); */
     
     let mut chain = load_chain("chain.json").unwrap_or_else(|_| Blockchain { blocks: vec![]});
-    save_chain(&chain, "chain.json").unwrap();
-}
+    let hasher = Sha256{};
 
+    let prev_hash = if chain.blocks.is_empty() {
+        None
+    } else {
+        Some(hasher.hash_header(&chain.blocks.last().unwrap().header))
+    };
+    
+    block.header.previous_hash = prev_hash;
+
+    
+
+
+    let args: Vec<String> = std::env::args().collect();
+    match args[1].as_str() {
+        "add-block" => {
+            chain.add_new(block, &hasher).unwrap();
+            save_chain(&chain, "chain.json").unwrap();
+        },
+        "show-chain" => println!("{:?}", serde_json::to_string_pretty(&chain).unwrap()),
+        "validate" => println!("chain saved with {} blocks", chain.blocks.len()),
+        &_ => println!("unknown command"),
+    }
+}
 async fn fetch_block_from_peer(peer_id: u64) -> Block {
     println!("fetching block from peer: {}", peer_id);
     sleep(Duration::from_millis(100)).await;
@@ -108,4 +132,3 @@ async fn fetch_fastest_block() -> Block {
     }
 }
 
-fn

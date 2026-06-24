@@ -1,5 +1,6 @@
 use serde::{Serialize, Deserialize};
 use crate::transaction::Tx;
+pub use crate::errors::BlockchainError;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Block {
@@ -16,9 +17,9 @@ pub struct Header {
 }
 
 impl Block {
-    pub fn new(header: Header, txs: Vec<Tx>) -> Result<Self, String> {
+    pub fn new(header: Header, txs: Vec<Tx>) -> Result<Self, BlockchainError> {
         if txs.is_empty() {
-            return Err(String::from("no txs in block"));
+            return Err((BlockchainError::EmptyTransactions));
         };
         let block = Block{
             header,

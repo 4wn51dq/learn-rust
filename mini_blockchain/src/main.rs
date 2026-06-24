@@ -9,6 +9,7 @@ mod chain;
 mod hasher;
 mod storage;
 mod tests;
+mod errors;
 
 use block::{Block, Header};
 use transaction::{Tx, TxStatus};
@@ -20,7 +21,7 @@ use crate::hasher::Hasher;
 
 #[tokio::main]
 async fn main() -> Result<(), String>{
-    let blockchain = Blockchain { blocks: vec![] };
+    let _blockchain = Blockchain { blocks: vec![] };
     
     let mut block = Block::new(
         Header {

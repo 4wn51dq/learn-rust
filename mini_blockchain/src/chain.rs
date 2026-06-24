@@ -3,6 +3,8 @@ use crate::block::Block;
 use crate::hasher::Hasher;
 use crate::transaction::Tx;
 use std::collections::HashMap;
+pub use crate::errors::BlockchainError;
+
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Blockchain {
@@ -10,17 +12,19 @@ pub struct Blockchain {
 }
 
 impl Blockchain {
-    pub fn add_new<H: Hasher>(&mut self, block: Block, hash_func: &H) -> Result<(), String> {
+    pub fn add_new<H: Hasher>(&mut self, block: Block, hash_func: &H) -> Result<(), BlockchainError> {
         if let Some(last) = self.blocks.last() {
-            let previous_header_hash = hash_func.hash_header(&last.header)?;
+            let previous_header_hash = hash_func
+                .hash_header(&last.header)
+                .map_err(|e| BlockchainError::InvalidPreviousHash)?;
             if block.header.previous_hash == Some(previous_header_hash) {
                 self.blocks.push(block);
             } else {
-                return Err(String::from("previous hash doesn't match"));
+                return Err(BlockchainError::InvalidPreviousHash);
             }
         } else {
             if block.header.previous_hash.is_some() {
-                return Err(String::from("genesis block cannot have previous hash"));
+                return Err(BlockchainError::InvalidGenesis);
             }
             self.blocks.push(block);
         }

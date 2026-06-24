@@ -19,6 +19,9 @@ impl Blockchain {
                 return Err(String::from("previous hash doesn't match"));
             }
         } else {
+            if block.header.previous_hash.is_some() {
+                return Err(String::from("genesis block cannot have previous hash"));
+            }
             self.blocks.push(block);
         }
         Ok(())

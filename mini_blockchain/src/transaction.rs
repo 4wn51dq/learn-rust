@@ -1,6 +1,6 @@
 use serde::{Serialize, Deserialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Tx {
     pub amount: u64,
     pub sender: [u8; 20],
@@ -18,7 +18,7 @@ impl Tx {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum TxStatus {
     Pending,
     Confirmed(u64), // block number

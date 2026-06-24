@@ -8,6 +8,7 @@ mod transaction;
 mod chain;
 mod hasher;
 mod storage;
+mod tests;
 
 use block::{Block, Header};
 use transaction::{Tx, TxStatus};

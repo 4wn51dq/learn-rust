@@ -1,13 +1,13 @@
 use serde::{Serialize, Deserialize};
 use crate::transaction::Tx;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Block {
     pub header: Header,
     pub txs: Vec<Tx>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Header {
     pub previous_hash: Option<[u8; 32]>,
     pub merkle_root: [u8; 32],

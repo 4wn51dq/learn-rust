@@ -12,7 +12,7 @@ mod storage;
 use block::{Block, Header};
 use transaction::{Tx, TxStatus};
 use chain::Blockchain;
-use hasher::{Sha256, /*Keccak256*/ };
+use hasher::{SHA256, /*Keccak256*/ };
 use storage::{load_chain, save_chain};
 
 use crate::hasher::Hasher;
@@ -78,12 +78,12 @@ async fn main() {
     println!("took {:?}", start.elapsed()); */
     
     let mut chain = load_chain("chain.json").unwrap_or_else(|_| Blockchain { blocks: vec![]});
-    let hasher = Sha256{};
+    let hasher = SHA256{};
 
     let prev_hash = if chain.blocks.is_empty() {
         None
     } else {
-        Some(hasher.hash_header(&chain.blocks.last().unwrap().header))
+        Some(hasher.hash_header(&chain.blocks.last().unwrap().header)?)
     };
     
     block.header.previous_hash = prev_hash;
@@ -94,13 +94,28 @@ async fn main() {
     let args: Vec<String> = std::env::args().collect();
     match args[1].as_str() {
         "add-block" => {
+            let amount = get_arg_value(&args, "--amount")
+                .unwrap_or("50".to_string())
+                .parse::<u64>()
+                .unwrap();
+            block.txs[0].amount = amount;
             chain.add_new(block, &hasher).unwrap();
             save_chain(&chain, "chain.json").unwrap();
         },
         "show-chain" => println!("{:?}", serde_json::to_string_pretty(&chain).unwrap()),
         "validate" => println!("chain saved with {} blocks", chain.blocks.len()),
+        "find-txs" => {
+            let txs = chain.find_txs(
+                get_arg_value(&args, "--amount")
+                .unwrap_or("amount not provided".to_string())
+                .parse::<u64>()
+                .unwrap()
+            );
+            println!("{:?}", txs);
+        }
         &_ => println!("unknown command"),
     }
+
 }
 async fn fetch_block_from_peer(peer_id: u64) -> Block {
     println!("fetching block from peer: {}", peer_id);
@@ -132,3 +147,7 @@ async fn fetch_fastest_block() -> Block {
     }
 }
 
+fn get_arg_value(args: &[String], flag: &str) -> Option<String> {
+    let position = args.iter().position(|arg| arg == flag)?;
+    args.get(position+1).cloned()
+}

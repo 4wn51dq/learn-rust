@@ -12,7 +12,7 @@ pub struct Blockchain {
 impl Blockchain {
     pub fn add_new<H: Hasher>(&mut self, block: Block, hash_func: &H) -> Result<(), String> {
         if let Some(last) = self.blocks.last() {
-            let previous_header_hash = hash_func.hash_header::<H>(&last.header)?;
+            let previous_header_hash = hash_func.hash_header(&last.header)?;
             if block.header.previous_hash == Some(previous_header_hash) {
                 self.blocks.push(block);
             } else {

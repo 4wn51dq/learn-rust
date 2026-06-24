@@ -18,7 +18,7 @@ use storage::{load_chain, save_chain};
 use crate::hasher::Hasher;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), String>{
     let blockchain = Blockchain { blocks: vec![] };
     
     let mut block = Block::new(
@@ -115,6 +115,8 @@ async fn main() {
         }
         &_ => println!("unknown command"),
     }
+
+    Ok(())
 
 }
 async fn fetch_block_from_peer(peer_id: u64) -> Block {

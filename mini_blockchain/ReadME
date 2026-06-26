@@ -1,0 +1,60 @@
+# mini_blockchain
+ 
+A minimal blockchain node built in Rust from scratch. No frameworks, no shortcuts — just Rust fundamentals applied to real blockchain concepts.
+ 
+## What it does
+ 
+- Creates and validates blocks with real SHA256 hashing
+- Enforces chain integrity — each block must reference the previous block's header hash
+- Persists chain state to disk across runs
+- Accepts commands via CLI
+- Serializes chain to JSON
+
+## Project structure
+ 
+```
+src/
+  main.rs        — CLI entry point, file persistence
+  block.rs       — Block, Header structs and impl
+  transaction.rs — Tx, TxStatus enums
+  chain.rs       — Blockchain struct, validation logic
+  hasher.rs      — Hasher trait, SHA256 implementation
+  errors.rs      — BlockchainError custom error types
+  storage.rs     — save_chain, load_chain
+```
+ 
+## Usage
+ 
+```bash
+# Add a block with a transaction
+cargo run -- add-block --amount 100
+ 
+# Display the full chain as JSON
+cargo run -- show-chain
+ 
+# Show block count
+cargo run -- validate
+```
+ 
+## Core concepts implemented
+ 
+- **Ownership and borrowing** — enforced throughout, no garbage collector
+- **Traits** — `Hasher` trait abstracts over hash functions
+- **Enums** — `TxStatus` (Pending, Confirmed, Failed) with exhaustive matching
+- **Error handling** — typed `BlockchainError` enum with `thiserror`
+- **Serialization** — `serde` + `serde_json` for persistence and display
+- **Concurrency** — `Arc<Mutex<T>>` for shared state across threads
+- **Async** — `tokio` runtime with `join!` and `select!`
+- **Iterators** — `flat_map`, `filter`, `map`, `sum` for chain queries
+
+## Chain validation rules
+ 
+1. Genesis block must have `previous_hash: None`
+2. Every subsequent block's `previous_hash` must equal the SHA256 hash of the previous block's header
+3. Every block must contain at least one transaction
+
+## Running tests
+ 
+```bash
+cargo test
+```

@@ -9,8 +9,11 @@ use thiserror::Error;
     InvalidPreviousHash,
     
     #[error("block must contain at least one transaction")]
-    EmptyTransactions,
+    #[warn(path_statements)] EmptyTransactions,
     
     #[error("serialization failed: {0}")]
     SerializationError(String),
+
+    #[error("Hashing failed")]
+    HashingError,
  }

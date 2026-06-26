@@ -16,6 +16,7 @@ use transaction::{Tx, TxStatus};
 use chain::Blockchain;
 use hasher::{SHA256, /*Keccak256*/ };
 use storage::{load_chain, save_chain};
+use errors::BlockchainError;
 
 use crate::hasher::Hasher;
 
@@ -85,7 +86,9 @@ async fn main() -> Result<(), String>{
     let prev_hash = if chain.blocks.is_empty() {
         None
     } else {
-        Some(hasher.hash_header(&chain.blocks.last().unwrap().header)?)
+        Some(hasher.hash_header(&chain.blocks.last().unwrap().header).unwrap()
+            
+        )
     };
     
     block.header.previous_hash = prev_hash;

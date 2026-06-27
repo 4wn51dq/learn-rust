@@ -10,6 +10,7 @@ mod hasher;
 mod storage;
 mod tests;
 mod errors;
+mod network;
 
 use block::{Block, Header};
 use transaction::{Tx, TxStatus};
@@ -94,6 +95,32 @@ async fn main() -> Result<(), String>{
     block.header.previous_hash = prev_hash;
 
     
+    let tx1 = Tx {
+        amount: 5,
+        sender: [6; 20],
+        receiver: [7; 20],
+        status: TxStatus::Pending,
+    };
+    let tx2 = Tx {
+            amount: 10,
+            sender: [7; 20],
+            receiver: [6; 20],
+            status: TxStatus::Pending,
+        };
+    let tx3 = Tx {
+            amount: 20,
+            sender: [6; 20],
+            receiver: [9; 20],
+            status: TxStatus::Pending,
+        };
+    let tx4 = Tx {
+            amount: 30,
+            sender: [9; 20],
+            receiver: [7; 20],
+            status: TxStatus::Pending,
+        };
+
+    let root = transaction::compute_merkle_root(&[tx1, tx2, tx3, tx4]).unwrap();
 
 
     let args: Vec<String> = std::env::args().collect();
@@ -118,8 +145,11 @@ async fn main() -> Result<(), String>{
             );
             println!("{:?}", txs);
         }
+        "show-root" =>    println!("merkle root is {:?}", root),
+
         &_ => println!("unknown command"),
     }
+
 
     Ok(())
 

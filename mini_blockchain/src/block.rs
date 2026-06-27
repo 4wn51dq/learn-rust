@@ -1,6 +1,8 @@
 use serde::{Serialize, Deserialize};
 use crate::transaction::Tx;
+use crate::transaction;
 pub use crate::errors::BlockchainError;
+
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Block {
@@ -19,12 +21,13 @@ pub struct Header {
 impl Block {
     pub fn new(header: Header, txs: Vec<Tx>) -> Result<Self, BlockchainError> {
         if txs.is_empty() {
-            return Err((BlockchainError::EmptyTransactions));
+            return Err(BlockchainError::EmptyTransactions);
         };
-        let block = Block{
+        let mut block = Block{
             header,
             txs,
         };
+        block.header.merkle_root = transaction::compute_merkle_root(&block.txs)?;
         Ok(block)
     }
     pub fn tx_count(&self) -> usize {

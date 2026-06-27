@@ -3,7 +3,7 @@ name = "rust_practise"
 version = "0.1.0"
 edition = "2024"
 
-[dev-dependenciescl]
+[dev-dependencies]
 
 [dependencies]
 serde = {version = "1.0.228", features = ["derive"]}

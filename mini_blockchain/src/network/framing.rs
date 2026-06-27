@@ -1,5 +1,10 @@
 use tokio::{io::{AsyncReadExt, AsyncWriteExt}, net::TcpStream};
 
+/// TCP is a byte stream with no message boundaries, Length Prefix Framing solves it by 
+/// writing the length of data into the stream prefix so the receiver gets to know when
+/// to stop reading.
+ 
+
 pub async fn write_frame(stream: &mut TcpStream, data: &[u8]) -> Result<(), std::io::Error> {
     
     let length = data.len() as u32;
@@ -31,7 +36,37 @@ pub async fn read_frame(stream: &mut TcpStream) -> Result<Vec<u8>, std::io::Erro
 
     stream.read_exact(&mut data).await?;
 
-    
-
     Ok(data)
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tokio::net::TcpListener;
+    use tokio::test;
+
+    #[tokio::test]
+    async fn test_tcp_roundtrip() {
+        let data = "wsup";
+
+        let listener = TcpListener::bind("127.0.0.1:8080").await.unwrap();
+
+        let server = tokio::spawn(async move {
+            let (mut server_stream, socket_addr) = listener.accept().await.unwrap();
+            read_frame(&mut server_stream).await.unwrap()
+        });
+
+        let client = tokio::spawn(async move {
+            let mut client_stream = TcpStream::connect("127.0.0.1:8080").await.unwrap();
+            write_frame(&mut client_stream, data.as_bytes()).await.unwrap();
+        });
+        
+
+        let (result,_) = tokio::join!(
+            server,
+            client,
+        );
+        assert_eq!(data.as_bytes(), result.unwrap());
+    }
 }

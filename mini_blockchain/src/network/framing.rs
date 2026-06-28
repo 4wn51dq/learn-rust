@@ -58,7 +58,7 @@ mod tests {
         });
 
         let client = tokio::spawn(async move {
-            let mut client_stream = TcpStream::connect("127.0.0.1:8080").await.unwrap();
+            let mut client_stream = TcpStream::connect("127.0.0.1:0").await.unwrap();
             write_frame(&mut client_stream, data.as_bytes()).await.unwrap();
         });
         
